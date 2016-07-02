@@ -31,8 +31,9 @@ Endpoint::Endpoint(const std::string &addr, uint16_t port) {
         throw "未知错误";
     }
 
-    port_ = ::htons(port);
+    port_ = htons(port);
 }
 
 Endpoint::Endpoint(const std::string &addr, const std::string &port)
-    : Endpoint(addr, static_cast<uint16_t>(std::stoi(port))) {}
+    : Endpoint(addr, static_cast<uint16_t>(std::stoi(port))) {
+}

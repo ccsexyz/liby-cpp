@@ -2,6 +2,8 @@
 #define LIBY_CPP_LIBY_H
 
 #include "Connection.h"
+#include "UdpSocket.h"
+#include "UdpConnection.h"
 #include "EventLoopGroup.h"
 #include "Socket.h"
 #include "TcpClient.h"

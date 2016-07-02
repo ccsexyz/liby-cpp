@@ -25,6 +25,10 @@ private:
     Poller *poller_;
     int eventfd_ = -1;
     std::unique_ptr<FileDescriptor> eventfp_;
+#ifdef __APPLE__
+    int event2fd_ = -1;
+    std::unique_ptr<FileDescriptor> event2fp_;
+#endif
     std::unique_ptr<Channel> eventChanelPtr_;
     BlockingQueue<BasicHandler> eventHandlers_;
 };

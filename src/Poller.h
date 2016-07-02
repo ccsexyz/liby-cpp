@@ -10,15 +10,20 @@ class Poller : clean_ {
 public:
     Poller();
 
-    virtual ~Poller() {}
+    virtual ~Poller() {
+    }
 
     void bind_to_thread();
 
     static Poller *curr_thread_poller();
 
-    Channel *getChannel(int fd) { return channels_[fd]; }
+    Channel *getChannel(int fd) {
+        return channels_[fd];
+    }
 
-    void setChannel(int fd, Channel *ch) { channels_[fd] = ch; }
+    void setChannel(int fd, Channel *ch) {
+        channels_[fd] = ch;
+    }
 
 public:
     virtual void addChanel(Channel *ch) = 0;
@@ -27,7 +32,7 @@ public:
 
     virtual void removeChanel(Channel *ch) = 0;
 
-    virtual void loop_once() = 0;
+    virtual void loop_once(Timestamp *ts = nullptr) = 0;
 
 private:
     std::vector<Channel *> channels_;

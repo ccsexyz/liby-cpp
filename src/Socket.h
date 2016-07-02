@@ -3,7 +3,9 @@
 
 #include "Endpoint.h"
 #include "util.h"
+#ifdef __linux__
 #include <sys/sendfile.h>
+#endif
 #include <sys/uio.h>
 
 namespace Liby {
@@ -19,19 +21,20 @@ public:
 
     SockPtr accept();
 
-    int fd() const { return fd_; }
-
-    Socket &setFp(const fdPtr &fp) {
-        fp_ = fp;
-        return *this;
+    int fd() const {
+        return fd_;
     }
+
+    Socket &setFp(const fdPtr &fp);
 
     Socket &setEndpoint(const Endpoint &ep) {
         ep_ = ep;
         return *this;
     }
 
-    int read(void *buf, size_t nbytes) { return ::read(fd_, buf, nbytes); }
+    int read(void *buf, size_t nbytes) {
+        return ::read(fd_, buf, nbytes);
+    }
     int readv(struct iovec *iov, int iovcnt) {
         return ::readv(fd_, iov, iovcnt);
     }
@@ -39,7 +42,9 @@ public:
                  socklen_t *address_len) {
         return ::recvfrom(fd_, buf, nbytes, flags, address, address_len);
     }
-    int write(void *buf, size_t nbytes) { return ::write(fd_, buf, nbytes); }
+    int write(void *buf, size_t nbytes) {
+        return ::write(fd_, buf, nbytes);
+    }
     int writev(struct iovec *iov, int iovcnt) {
         return ::writev(fd_, iov, iovcnt);
     }
@@ -48,11 +53,19 @@ public:
         return ::sendto(fd_, buf, nbytes, flags, dest_addr, dest_len);
     }
     int sendfile(int in_fd, off_t *offset, size_t count) {
+#ifdef __linux__
         return ::sendfile(fd_, in_fd, offset, count);
+#elif defined(__APPLE__)
+        off_t len = static_cast<off_t>(count);
+        return ::sendfile(in_fd, fd_, *offset, &len, nullptr, 0);
+#endif
     }
 
-    void setNoblock(bool flag = true) noexcept;
-    void setNonagle(bool flag = true) noexcept;
+    void setNoblock(bool flag = true);
+    void setNonagle(bool flag = true);
+
+private:
+    void createSocket();
 
 private:
     bool isUdp_ = false;

@@ -1,6 +1,9 @@
 #include "EventLoop.h"
 #include "EventQueue.h"
 #include "PollerEpoll.h"
+#include "PollerKevent.h"
+#include "PollerPoll.h"
+#include "PollerSelect.h"
 #include "TimerQueue.h"
 
 using namespace Liby;
@@ -8,7 +11,18 @@ using namespace Liby;
 __thread EventLoop *th_loop = nullptr;
 
 EventLoop::EventLoop(const std::string &chooser) {
-    poller_ = std::make_unique<PollerEpoll>();
+    if (chooser == "POLL") {
+        poller_ = std::make_unique<PollerPoll>();
+    } else if (chooser == "SELECT") {
+        poller_ = std::make_unique<PollerSelect>();
+    } else {
+#ifdef __linux__
+        poller_ = std::make_unique<PollerEpoll>();
+#elif defined(__APPLE__)
+        poller_ = std::make_unique<PollerKevent>();
+#endif
+    }
+
     equeue_ = std::make_unique<EventQueue>(poller_.get());
     tqueue_ = std::make_unique<TimerQueue>(poller_.get());
 }
@@ -33,11 +47,31 @@ void EventLoop::run(BoolFunctor bf) {
     tqueue_->start();
 
     while (bf()) {
-        poller_->loop_once();
+#ifdef __APPLE__
+        tqueue_->handleTimeoutEvents();
+
+        Timestamp min;
+        const Timestamp *pmin = tqueue_->getMinTimestamp();
+        Timestamp *p = nullptr;
+        if (pmin != nullptr) {
+            min = *pmin;
+            p = &min;
+        }
+
+        poller_->loop_once(p);
+
+        tqueue_->handleTimeoutEvents();
+#elif defined(__linux__)
+
+        poller_->loop_once(p);
+
+#endif
     }
 }
 
-void EventLoop::wakeup() { equeue_->wakeup(); }
+void EventLoop::wakeup() {
+    equeue_->wakeup();
+}
 
 void EventLoop::runEventHandler(const BasicHandler &handler) {
     equeue_->pushHandler(handler);
@@ -72,6 +106,10 @@ TimerHolder EventLoop::runEvery(const Timestamp &timestamp,
     return holder;
 }
 
-EventLoop *EventLoop::robinLoop1(int fd) { return rf1_(fd); }
+EventLoop *EventLoop::robinLoop1(int fd) {
+    return rf1_(fd);
+}
 
-EventLoop *EventLoop::robinLoop(int fd) { return rf_(fd); }
+EventLoop *EventLoop::robinLoop(int fd) {
+    return rf_(fd);
+}

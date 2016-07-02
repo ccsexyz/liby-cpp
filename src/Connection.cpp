@@ -13,7 +13,8 @@ Connection::Connection(EventLoop *loop, const SockPtr &socket)
 }
 
 Connection::Connection(const SockPtr &socket)
-    : Connection(EventLoop::curr_thread_loop(), socket) {}
+    : Connection(EventLoop::curr_thread_loop(), socket) {
+}
 
 void Connection::init() {
     self_ = shared_from_this();
@@ -41,9 +42,11 @@ void Connection::destroy() {
     self_.reset();
 }
 
-void Connection::setErro() {}
+void Connection::setErro() {
+}
 
-void Connection::sendFile(const fdPtr &fp, off_t off, off_t len) {}
+void Connection::sendFile(const fdPtr &fp, off_t off, off_t len) {
+}
 
 void Connection::runEventHandler(const BasicHandler &handler) {
     assert(loop_ && poller_);
@@ -101,9 +104,13 @@ void Connection::send(const std::string &str, const BasicHandler &handler) {
     }
 }
 
-int Connection::sync_read(char *buf, size_t len) { return 0; }
+int Connection::sync_read(char *buf, size_t len) {
+    return 0;
+}
 
-int Connection::sync_send(Buffer &buffer) { return 0; }
+int Connection::sync_send(Buffer &buffer) {
+    return 0;
+}
 
 __thread char extraBuffer[16384];
 
@@ -147,7 +154,13 @@ void Connection::handleWritEvent() {
     //    }
 
     auto x = self_;
-    enableWrit(false);
+    DeferCaller([this] {
+        if (destroy_)
+            return;
+        if (writTasks_.empty())
+            enableWrit(false);
+    });
+    //    enableWrit(false);
 
     //    ssize_t bytes = 0; // 注: sendfile的字节数不计入bytes中
     while (!writTasks_.empty()) {

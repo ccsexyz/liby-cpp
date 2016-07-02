@@ -10,6 +10,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,16 +83,20 @@ public:
 class DeferCaller final : clean_ {
 public:
     DeferCaller(std::function<void()> &&functor)
-        : functor_(std::move(functor)) {}
+        : functor_(std::move(functor)) {
+    }
 
-    DeferCaller(const std::function<void()> &functor) : functor_(functor) {}
+    DeferCaller(const std::function<void()> &functor) : functor_(functor) {
+    }
 
     ~DeferCaller() {
         if (functor_)
             functor_();
     }
 
-    void cancel() { functor_ = nullptr; }
+    void cancel() {
+        functor_ = nullptr;
+    }
 
 private:
     std::function<void()> functor_;
@@ -99,9 +104,12 @@ private:
 
 class ErrnoSaver final : clean_ {
 public:
-    ErrnoSaver() : savedErrno_(errno) {}
+    ErrnoSaver() : savedErrno_(errno) {
+    }
 
-    ~ErrnoSaver() { errno = savedErrno_; }
+    ~ErrnoSaver() {
+        errno = savedErrno_;
+    }
 
 private:
     int savedErrno_ = 0;
@@ -152,13 +160,17 @@ class Timestamp final {
 public:
     static const uint32_t kMicrosecondsPerSecond = (1000) * (1000);
 
-    Timestamp() : Timestamp(0, 0) {}
+    Timestamp() : Timestamp(0, 0) {
+    }
 
-    explicit Timestamp(struct timeval *ptv) : tv_(*ptv) {}
+    explicit Timestamp(struct timeval *ptv) : tv_(*ptv) {
+    }
 
-    explicit Timestamp(const struct timeval &tv) : tv_(tv) {}
+    explicit Timestamp(const struct timeval &tv) : tv_(tv) {
+    }
 
-    explicit Timestamp(time_t sec) : Timestamp(sec, 0) {}
+    explicit Timestamp(time_t sec) : Timestamp(sec, 0) {
+    }
 
     explicit Timestamp(time_t sec, suseconds_t usec) {
         tv_.tv_sec = sec;
@@ -169,9 +181,13 @@ public:
         }
     }
 
-    Timestamp(const Timestamp &that) { tv_ = that.tv_; }
+    Timestamp(const Timestamp &that) {
+        tv_ = that.tv_;
+    }
 
-    Timestamp(Timestamp &&that) { tv_ = that.tv_; }
+    Timestamp(Timestamp &&that) {
+        tv_ = that.tv_;
+    }
 
     Timestamp &operator=(const Timestamp &that) {
         tv_ = that.tv_;
@@ -186,19 +202,29 @@ public:
 
     std::string toString() const;
 
-    bool invalid() const { return tv_.tv_sec == 0 && tv_.tv_usec == 0; }
+    bool invalid() const {
+        return tv_.tv_sec == 0 && tv_.tv_usec == 0;
+    }
 
-    bool valid() const { return !invalid(); }
+    bool valid() const {
+        return !invalid();
+    }
 
-    time_t sec() const { return tv_.tv_sec; }
+    time_t sec() const {
+        return tv_.tv_sec;
+    }
 
-    suseconds_t usec() const { return tv_.tv_usec; }
+    suseconds_t usec() const {
+        return tv_.tv_usec;
+    }
 
     uint64_t toMillSec() const {
         return tv_.tv_sec * 1000 + tv_.tv_usec / 1000;
     }
 
-    uint64_t toMicroSec() const { return tv_.tv_sec * 1000000UL + tv_.tv_usec; }
+    uint64_t toMicroSec() const {
+        return tv_.tv_sec * 1000000UL + tv_.tv_usec;
+    }
 
     double toSecF() const {
         return static_cast<double>(tv_.tv_usec) / 1000000.0 +
@@ -235,10 +261,14 @@ public:
         return ret;
     }
 
-    static Timestamp invalidTime() { return Timestamp(); }
+    static Timestamp invalidTime() {
+        return Timestamp();
+    }
 
 private:
-    void gettimeofday() { ::gettimeofday(&tv_, NULL); }
+    void gettimeofday() {
+        ::gettimeofday(&tv_, NULL);
+    }
 
 private:
     struct timeval tv_;
@@ -305,7 +335,9 @@ public:
         delete[] nodes_;
     }
 
-    T &operator[](const std::string &str) { return operator[](str.data()); }
+    T &operator[](const std::string &str) {
+        return operator[](str.data());
+    }
 
     T &operator[](const char *str) {
         if (str == nullptr)
@@ -345,7 +377,9 @@ public:
         }
     }
 
-    bool find(const std::string &str) { return find(str.data()); }
+    bool find(const std::string &str) {
+        return find(str.data());
+    }
 
     void insert(const char *str, const T &element) {
         if (str == nullptr)
@@ -389,9 +423,14 @@ struct BaseContext {
     }
 };
 
-static void inline throw_err() { throw ::strerror(errno); }
+static void inline throw_err() {
+    int err = errno;
+    throw ::strerror(errno);
+}
 
-static inline long get_open_max() noexcept { return ::sysconf(_SC_OPEN_MAX); }
+static inline long get_open_max() noexcept {
+    return ::sysconf(_SC_OPEN_MAX);
+}
 }
 
 #endif // LIBY_CPP_UTIL_H

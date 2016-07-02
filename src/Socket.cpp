@@ -11,9 +11,11 @@ using namespace Liby;
 
 SockPtr Socket::accept() {
     assert(fd() >= 0);
-    struct sockaddr address;
-    socklen_t address_len;
-    int clfd = ::accept(fd(), &address, &address_len);
+
+    struct sockaddr_in address;
+    // remember to init address_len
+    socklen_t address_len = sizeof(address);
+    int clfd = ::accept(fd(), (struct sockaddr *)&address, &address_len);
     if (clfd < 0) {
         if (errno == EAGAIN) {
             return nullptr;
@@ -30,23 +32,25 @@ SockPtr Socket::accept() {
     }
 }
 
-Socket::Socket(bool isUdp_) : isUdp_(isUdp_) {}
+Socket::Socket(bool isUdp_) : isUdp_(isUdp_) {
+    createSocket();
+}
 
 Socket::Socket(const fdPtr &fp, bool isUdp_)
-    : isUdp_(isUdp_), fd_(fp->fd()), fp_(fp) {}
+    : isUdp_(isUdp_), fd_(fp->fd()), fp_(fp) {
+}
 
-Socket::Socket(const Endpoint &ep, bool isUdp_) : isUdp_(isUdp_), ep_(ep) {}
+Socket::Socket(const Endpoint &ep, bool isUdp_) : isUdp_(isUdp_), ep_(ep) {
+    createSocket();
+}
 
 Socket::Socket(const fdPtr &fp, const Endpoint &ep, bool isUdp)
-    : isUdp_(isUdp), fd_(fp->fd()), fp_(fp), ep_(ep) {}
+    : isUdp_(isUdp), fd_(fp->fd()), fp_(fp), ep_(ep) {
+}
 
 void Socket::connect() {
     if (!fp_) {
-        fd_ = ::socket(AF_INET, isUdp_ ? SOCK_DGRAM : SOCK_STREAM, 0);
-        if (fd_ < 0) {
-            throw ::strerror(errno);
-        }
-        fp_ = std::make_shared<FileDescriptor>(fd_);
+        createSocket();
     }
 
     setNoblock();
@@ -67,12 +71,7 @@ void Socket::connect() {
 
 void Socket::listen() {
     if (!fp_) {
-        fd_ = ::socket(AF_INET, isUdp_ ? SOCK_DGRAM : SOCK_STREAM, 0);
-        if (fd_ < 0) {
-            throw ::strerror(errno);
-        }
-
-        fp_ = std::make_shared<FileDescriptor>(fd_);
+        createSocket();
     }
 
     setNoblock();
@@ -98,23 +97,31 @@ void Socket::listen() {
     }
 }
 
-void Socket::setNoblock(bool flag) noexcept {
-    int opt;
-    opt = ::fcntl(fd_, F_GETFL);
-    if (opt < 0) {
-        throw_err();
-    }
-    opt = flag ? (opt | O_NONBLOCK) : (opt & ~O_NONBLOCK);
-    if (::fcntl(fd_, F_SETFL, opt) < 0) {
-        throw_err();
-    }
+void Socket::setNoblock(bool flag) {
+    fp_->set_noblock();
 }
 
-void Socket::setNonagle(bool flag) noexcept {
+void Socket::setNonagle(bool flag) {
     assert(!isUdp_);
     int nodelay = flag ? 1 : 0;
     if (::setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(int)) <
         0) {
         throw_err();
     }
+}
+
+void Socket::createSocket() {
+    fd_ = ::socket(AF_INET, isUdp_ ? SOCK_DGRAM : SOCK_STREAM, 0);
+    if (fd_ < 0) {
+        throw_err();
+    }
+
+    fp_ = std::make_shared<FileDescriptor>(fd_);
+}
+
+Socket &Socket::setFp(const fdPtr &fp) {
+    assert(fp);
+    fp_ = fp;
+    fd_ = fp->fd();
+    return *this;
 }

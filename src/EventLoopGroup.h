@@ -7,6 +7,7 @@
 namespace Liby {
 class TcpServer;
 class TcpClient;
+class UdpSocket;
 class EventLoopGroup final : clean_ {
 public:
     EventLoopGroup(int n = 0, const std::string &chooser = "EPOLL");
@@ -19,6 +20,11 @@ public:
                                               const std::string &service);
     std::shared_ptr<TcpClient> creatTcpClient(const std::string &host,
                                               const std::string &service);
+    std::shared_ptr<UdpSocket> creatUdpServer(const std::string &host,
+                                              const std::string &service);
+    std::shared_ptr<UdpSocket> creatUdpClient(const std::string &host,
+                                              const std::string &service);
+    std::shared_ptr<UdpSocket> creatUdpClient();
 
 private:
     void worker_thread(int index);

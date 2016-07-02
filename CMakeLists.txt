@@ -42,9 +42,18 @@ set(SOURCE_FILES
         src/TcpClient.cpp
         src/TcpClient.h
         src/TcpServer.cpp
-        src/TcpServer.h)
+        src/TcpServer.h
+        src/UdpSocket.cpp
+        src/UdpSocket.h
+        src/UdpConnection.cpp
+        src/UdpConnection.h
+        src/PollerPoll.cpp
+        src/PollerPoll.h
+        src/PollerSelect.cpp
+        src/PollerSelect.h
+        src/PollerKevent.cpp
+        src/PollerKevent.h)
 
-set(LIBY_CPP_FILES src/main.cpp ${SOURCE_FILES})
 set(ECHO_FILES examples/echo.cpp ${SOURCE_FILES})
 set(ECHO_CLIENT_FILES examples/echo_client.cpp ${SOURCE_FILES})
 set(TCP_RELAYER_FILES examples/tcp_relayer.cpp ${SOURCE_FILES})
@@ -53,12 +62,12 @@ set(DAYTIME_FILES examples/daytime.cpp ${SOURCE_FILES})
 set(DISCARD_FILES examples/discard.cpp ${SOURCE_FILES})
 set(CHAT_FILES examples/chat.cpp ${SOURCE_FILES})
 set(ALL_FILES examples/all.cpp ${SOURCE_FILES})
+set(UDP_HELLO_FILES examples/udp_hello.cpp ${SOURCE_FILES})
+set(UDP_CLIENT_FILES examples/udp_client.cpp ${SOURCE_FILES})
 
 
 add_library(_cpp SHARED ${SOURCE_FILES})
 
-add_executable(liby_cpp ${LIBY_CPP_FILES})
-target_link_libraries(liby_cpp pthread)
 add_executable(echo ${ECHO_FILES})
 target_link_libraries(echo pthread)
 add_executable(echo_client ${ECHO_CLIENT_FILES})
@@ -75,4 +84,7 @@ add_executable(chat ${CHAT_FILES})
 target_link_libraries(chat pthread)
 add_executable(all_ ${ALL_FILES})
 target_link_libraries(all_ pthread)
-
+add_executable(udp_hello ${UDP_HELLO_FILES})
+target_link_libraries(udp_hello pthread)
+add_executable(udp_client ${UDP_CLIENT_FILES})
+target_link_libraries(udp_client pthread)

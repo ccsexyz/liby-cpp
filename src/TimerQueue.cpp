@@ -146,3 +146,11 @@ void TimerQueue::insert(const std::shared_ptr<Timer> &timer) {
     }
     queue_.insert(weakTimerHolder);
 }
+
+const Timestamp *TimerQueue::getMinTimestamp() {
+    if (!queue_.empty()) {
+        const WeakTimerHolder &minHolder = queue_.find_min();
+        return &(minHolder.getTimer().timeout());
+    }
+    return nullptr;
+}

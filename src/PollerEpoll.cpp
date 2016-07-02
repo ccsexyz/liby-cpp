@@ -1,6 +1,7 @@
 #include "PollerEpoll.h"
 #include "Channel.h"
 #include "FileDescriptor.h"
+#ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/epoll.h>
 
@@ -14,7 +15,7 @@ PollerEpoll::PollerEpoll() {
     events_.resize(defaultEpollSize);
 }
 
-void PollerEpoll::loop_once() {
+void PollerEpoll::loop_once(Timestamp *ts) {
     int nfds = ::epoll_wait(pollerfd_, &events_[0], events_.size(), -1);
     verbose("nfds = %d events_.size() = %u", nfds, events_.size());
     for (int i = 0; i < nfds; i++) {
@@ -114,3 +115,5 @@ void PollerEpoll::removeChanel(Channel *ch) {
         throw ::strerror(errno);
     }
 }
+
+#endif

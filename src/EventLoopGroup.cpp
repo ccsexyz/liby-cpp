@@ -7,13 +7,14 @@
 #include "Socket.h"
 #include "TcpClient.h"
 #include "TcpServer.h"
+#include "UdpSocket.h"
 #include <mutex>
 #include <signal.h>
 
 using namespace Liby;
 
 EventLoopGroup::EventLoopGroup(int n, const std::string &chooser)
-        : n_(n), chooser_(chooser) {
+    : n_(n), chooser_(chooser) {
     for (int i = 0; i < n + 1; i++) {
         loops_.emplace_back(std::make_shared<EventLoop>(chooser));
         ploops_.push_back(loops_.back().get());
@@ -27,7 +28,7 @@ void EventLoopGroup::run(BoolFunctor bf) {
     bf_ = bf;
     for (int i = 0; i < n_; i++) {
         threads_.emplace_back([this](int index) { worker_thread(index); },
-                i + 1);
+                              i + 1);
     }
 
     worker_thread(0);
@@ -63,10 +64,13 @@ EventLoop *EventLoopGroup::robinLoop1(int fd) {
     }
 }
 
-EventLoop *EventLoopGroup::robinLoop(int fd) { return ploops_[fd % (n_ + 1)]; }
+EventLoop *EventLoopGroup::robinLoop(int fd) {
+    return ploops_[fd % (n_ + 1)];
+}
 
-std::shared_ptr<TcpServer> EventLoopGroup::creatTcpServer(const std::string &host,
-                                                          const std::string &service) {
+std::shared_ptr<TcpServer>
+EventLoopGroup::creatTcpServer(const std::string &host,
+                               const std::string &service) {
     auto eps = Resolver::resolve(host, service);
     if (eps.empty()) {
         error("host or service unavaiable");
@@ -77,7 +81,7 @@ std::shared_ptr<TcpServer> EventLoopGroup::creatTcpServer(const std::string &hos
     sockPtr->listen();
 
     std::shared_ptr<TcpServer> tcpServer =
-            std::make_shared<TcpServer>(ploops_[0]);
+        std::make_shared<TcpServer>(ploops_[0]);
     tcpServer->setServerSocket(sockPtr);
 
     tcpServer->start();
@@ -85,24 +89,72 @@ std::shared_ptr<TcpServer> EventLoopGroup::creatTcpServer(const std::string &hos
     return tcpServer;
 }
 
-std::shared_ptr<TcpClient> EventLoopGroup::creatTcpClient(const std::string &host,
-                                                          const std::string &service) {
+std::shared_ptr<TcpClient>
+EventLoopGroup::creatTcpClient(const std::string &host,
+                               const std::string &service) {
     std::shared_ptr<TcpClient> tcpClient = std::make_shared<TcpClient>();
     std::weak_ptr<TcpClient> weakTcpClient = tcpClient;
 
     Resolver::async_resolve(
-            host, service, [this, weakTcpClient](std::list<Endpoint> eps) {
-                if (weakTcpClient.expired() || eps.empty())
-                    return;
+        host, service, [this, weakTcpClient](std::list<Endpoint> eps) {
+            if (weakTcpClient.expired() || eps.empty())
+                return;
 
-                auto tcpClient = weakTcpClient.lock();
-                SockPtr sockPtr = std::make_shared<Socket>(eps.front());
-                sockPtr->connect();
+            auto tcpClient = weakTcpClient.lock();
+            SockPtr sockPtr = std::make_shared<Socket>(eps.front());
+            sockPtr->connect();
 
-                tcpClient->setEventLoop(robinLoop1(sockPtr->fd()));
-                tcpClient->setSocket(sockPtr);
+            tcpClient->setEventLoop(robinLoop1(sockPtr->fd()));
+            tcpClient->setSocket(sockPtr);
 
-                tcpClient->start();
-            });
+            tcpClient->start();
+        });
     return tcpClient;
+}
+
+std::shared_ptr<UdpSocket>
+EventLoopGroup::creatUdpServer(const std::string &host,
+                               const std::string &service) {
+    auto eps = Resolver::resolve(host, service);
+    if (eps.empty()) {
+        error("host or service unavaiable");
+        return nullptr;
+    }
+
+    SockPtr sockPtr = std::make_shared<Socket>(eps.front(), true);
+    sockPtr->listen();
+
+    std::shared_ptr<UdpSocket> udpSocket =
+        std::make_shared<UdpSocket>(ploops_[0], sockPtr);
+    udpSocket->start();
+
+    return udpSocket;
+}
+
+std::shared_ptr<UdpSocket>
+EventLoopGroup::creatUdpClient(const std::string &host,
+                               const std::string &service) {
+    auto udpSocket = creatUdpClient();
+    std::weak_ptr<UdpSocket> weakUdpSocket(udpSocket);
+
+    Resolver::async_resolve(host, service,
+                            [this, weakUdpSocket](std::list<Endpoint> eps) {
+                                if (weakUdpSocket.expired() || eps.empty())
+                                    return;
+
+                                auto udpSocket = weakUdpSocket.lock();
+                                udpSocket->start();
+
+                                udpSocket->handleConnectEvent(eps.front());
+                            });
+
+    return udpSocket;
+}
+
+std::shared_ptr<UdpSocket> EventLoopGroup::creatUdpClient() {
+    SockPtr sockPtr = std::make_shared<Socket>(true);
+    sockPtr->setNoblock();
+    std::shared_ptr<UdpSocket> udpSocket =
+        std::make_shared<UdpSocket>(robinLoop1(sockPtr->fd()), sockPtr);
+    return udpSocket;
 }
