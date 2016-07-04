@@ -68,6 +68,8 @@ void PollerSelect::removeChanel(Channel *ch) {
 }
 
 void PollerSelect::loop_once(Timestamp *ts) {
+    runNextLoopHandlers();
+
     struct timeval timeout;
     struct timeval *pto = nullptr;
     if (ts != nullptr) {
@@ -89,6 +91,10 @@ void PollerSelect::loop_once(Timestamp *ts) {
     errorif(nready == -1, "select: %s", ::strerror(errno));
 
     for (int fd = 0; fd < maxfd_ && nready > 0; fd++) {
+        DeferCaller deferCaller([this]{
+            runNextTickHandlers();
+        });
+
         bool flag = false;
         if (FD_ISSET(fd, &eset)) {
             flag = true;
@@ -107,4 +113,6 @@ void PollerSelect::loop_once(Timestamp *ts) {
             ch->handleWritEvent();
         }
     }
+
+    runAfterLoopHandlers();
 }

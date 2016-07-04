@@ -69,11 +69,13 @@ void EventQueue::start() {
 
 void EventQueue::wakeup() {
     static int64_t this_is_a_number = 1;
+    int targetfd;
 #ifdef __linux__
-    ::write(eventfd_, &this_is_a_number, sizeof(this_is_a_number));
+    targetfd = eventfd_;
 #elif defined(__APPLE__)
-    ::write(event2fd_, &this_is_a_number, sizeof(this_is_a_number));
+    targetfd = event2fd_;
 #endif
+    ClearUnuseVariableWarning(::write(targetfd, &this_is_a_number, sizeof(this_is_a_number)));
 }
 
 void EventQueue::pushHandler(const BasicHandler &handler) {

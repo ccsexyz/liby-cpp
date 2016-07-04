@@ -16,9 +16,15 @@ PollerEpoll::PollerEpoll() {
 }
 
 void PollerEpoll::loop_once(Timestamp *ts) {
+    runNextLoopHandlers();
+
     int nfds = ::epoll_wait(pollerfd_, &events_[0], events_.size(), -1);
     verbose("nfds = %d events_.size() = %u", nfds, events_.size());
     for (int i = 0; i < nfds; i++) {
+        DeferCaller deferCaller([this]{
+            runNextTickHandlers();
+        });
+
         int fd = events_[i].data.fd;
         Channel *ch = getChannel(fd);
         verbose("event in chan %p", ch);
@@ -32,6 +38,9 @@ void PollerEpoll::loop_once(Timestamp *ts) {
             ch->handleWritEvent();
         }
     }
+
+    runAfterLoopHandlers();
+
     // update channels
     //    for(int i = 0; i < nfds; i++) {
     //        int fd = events_[i].data.fd;

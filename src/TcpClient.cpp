@@ -18,30 +18,32 @@ void TcpClient::start() {
         .enableWrit()
         .onWrit([this] {
             auto x = shared_from_this();
-            if (!socket_) {
-                auto p = chan_.get();
-                info("%p", chan_.get());
-                socket_.reset();
-            }
+//            if (!socket_) {
+//                auto p = chan_.get();
+//                socket_.reset();
+//            }
             ConnPtr connPtr = std::make_shared<Connection>(loop_, socket_);
             connPtr->setChannel(chan_);
             if (context_) {
                 connPtr->context_ = context_;
             }
             Connector connector = connector_;
-            connPtr->runEventHandler([connPtr, connector] {
+
+            loop_->nextTick([&, connPtr, connector]{
+                chan_->onWrit(nullptr);
+                chan_->onErro(nullptr);
+                destroy();
+
                 connPtr->init();
                 connPtr->enableRead();
                 if (connector) {
                     connector(connPtr);
                 }
             });
+
             chan_->enableRead(false);
             chan_->enableWrit(false);
             chan_->updateChannel();
-            info("%p", this);
-            socket_.reset();
-            // destroy();
         })
         .onErro([this] {
             auto x = shared_from_this();

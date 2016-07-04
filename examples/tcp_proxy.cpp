@@ -45,7 +45,7 @@ public:
         }
 
         string host = address;
-        string service = to_string(::ntohs(*(uint16_t *)(base + 2)));
+        string service = to_string(ntohs(*(uint16_t *)(base + 2)));
 
         info("host: %s service: %s", host.data(), service.data());
         readBuf.retrieve();

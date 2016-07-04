@@ -41,14 +41,21 @@ public:
                          const BasicHandler &handler);
 
     void runEventHandler(const BasicHandler &handler);
+    // 在事件处理结束时调用
+    void nextTick(const BasicHandler &handler);
+    // 在Eventloop的下一次循环调用
+    void nextLoop(const BasicHandler &handler);
+    // 在Eventloop的这一次循环结束时调用
+    void afterLoop(const BasicHandler &handler);
 
-private:
 private:
     std::unique_ptr<Poller> poller_;
     std::unique_ptr<EventQueue> equeue_;
     std::unique_ptr<TimerQueue> tqueue_;
     RobinFunctor rf_;
     RobinFunctor rf1_;
+    std::deque<BasicHandler> nextLoopHandlers_;
+    std::deque<BasicHandler> afterLoopHandlers_;
 };
 }
 

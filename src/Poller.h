@@ -25,17 +25,32 @@ public:
         channels_[fd] = ch;
     }
 
+    // 在事件处理结束时调用
+    void nextTick(const BasicHandler &handler);
+    // 在Poller的下一次循环调用
+    void nextLoop(const BasicHandler &handler);
+    // 在Poller的这一次循环结束时调用
+    void afterLoop(const BasicHandler &handler);
+
 public:
-    virtual void addChanel(Channel *ch) = 0;
+    virtual void addChanel(Channel *ch) {}
 
-    virtual void updateChanel(Channel *ch, bool readable, bool writable) = 0;
+    virtual void updateChanel(Channel *ch, bool readable, bool writable) {}
 
-    virtual void removeChanel(Channel *ch) = 0;
+    virtual void removeChanel(Channel *ch) {}
 
-    virtual void loop_once(Timestamp *ts = nullptr) = 0;
+    virtual void loop_once(Timestamp *ts = nullptr) {}
+
+protected:
+    void runNextTickHandlers();
+    void runNextLoopHandlers();
+    void runAfterLoopHandlers();
 
 private:
     std::vector<Channel *> channels_;
+    std::list<BasicHandler> nextTickHandlers_;
+    std::list<BasicHandler> nextLoopHandlers_;
+    std::list<BasicHandler> afterLoopHandlers_;
 };
 }
 

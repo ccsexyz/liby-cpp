@@ -1,3 +1,5 @@
+#ifdef __APPLE__
+
 #include "PollerKevent.h"
 #include "Channel.h"
 #include "FileDescriptor.h"
@@ -65,6 +67,8 @@ void PollerKevent::removeChanel(Channel *ch) {
 }
 
 void PollerKevent::loop_once(Timestamp *ts) {
+    runNextLoopHandlers();
+
     struct timespec timeout;
     struct timespec *pto = nullptr;
     if (ts != nullptr) {
@@ -81,6 +85,10 @@ void PollerKevent::loop_once(Timestamp *ts) {
     int nready = ::kevent(kq_, nullptr, 0, &events_[0], events_.size(), pto);
 
     for (int i = 0; i < nready; i++) {
+        DeferCaller deferCaller([this]{
+            runNextTickHandlers();
+        });
+
         struct kevent &event = events_[i];
         int fd = static_cast<int>(event.ident);
 
@@ -100,6 +108,8 @@ void PollerKevent::loop_once(Timestamp *ts) {
             ch->handleWritEvent();
         }
     }
+
+    runAfterLoopHandlers();
 
     updateKevents();
 
@@ -133,3 +143,5 @@ void PollerKevent::updateKevents() {
 
     changes_.clear();
 }
+
+#endif

@@ -32,10 +32,6 @@ void EventLoopGroup::run(BoolFunctor bf) {
     }
 
     worker_thread(0);
-
-    for (int i = 0; i < n_; i++) {
-        loops_[i + 1]->wakeup();
-    }
 }
 
 void EventLoopGroup::worker_thread(int index) {
@@ -54,6 +50,13 @@ void EventLoopGroup::worker_thread(int index) {
         std::lock_guard<std::mutex> G_(m);
         return bf_();
     });
+
+    // 这里不用担心调用wakeup时EventLoopGroup被析构
+    //　因为主线程的析构函数会等待其他线程终结
+
+    for(auto loop : ploops_) {
+        loop->wakeup();
+    }
 }
 
 EventLoop *EventLoopGroup::robinLoop1(int fd) {
@@ -157,4 +160,12 @@ std::shared_ptr<UdpSocket> EventLoopGroup::creatUdpClient() {
     std::shared_ptr<UdpSocket> udpSocket =
         std::make_shared<UdpSocket>(robinLoop1(sockPtr->fd()), sockPtr);
     return udpSocket;
+}
+
+EventLoopGroup::~EventLoopGroup() {
+    for(auto &th : threads_) {
+        if(th.joinable()) {
+            th.join();
+        }
+    }
 }

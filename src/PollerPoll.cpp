@@ -59,6 +59,8 @@ void PollerPoll::removeChanel(Channel *ch) {
 }
 
 void PollerPoll::loop_once(Timestamp *ts) {
+    runNextLoopHandlers();
+
     int interMs = -1;
     if (ts != nullptr) {
         Timestamp now = Timestamp::now();
@@ -72,6 +74,10 @@ void PollerPoll::loop_once(Timestamp *ts) {
     int nready = ::poll(&pollfds_[0], pollfds_.size(), interMs);
 
     for (int i = 0; i < pollfds_.size() && nready > 0; i++) {
+        DeferCaller deferCaller([this]{
+            runNextTickHandlers();
+        });
+
         bool flag = false;
         int fd = pollfds_[i].fd;
         int revent = pollfds_[i].revents;
@@ -106,4 +112,6 @@ void PollerPoll::loop_once(Timestamp *ts) {
             nready--;
         }
     }
+
+    runAfterLoopHandlers();
 }

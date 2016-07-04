@@ -21,6 +21,8 @@ public:
 
     void func();
 
+    void stop();
+
     void resolve(const std::string &name, const std::string &port,
                  EventLoop *loop, ResolverHandler handler);
 
@@ -58,16 +60,24 @@ void ResolverThread::resolve(const std::string &name, const std::string &port,
     requests_.push_notify(std::make_tuple(name, port, loop, handler));
 }
 
+void ResolverThread::stop() {
+    keep_running = false;
+    resolve("", "", nullptr, nullptr);
+}
+
+
 class ResolverImp final : clean_ {
 public:
-    ResolverImp(ResolverThread &rt) : t_(&ResolverThread::func, &rt) {}
+    ResolverImp(ResolverThread &rt) : rt_(rt), t_(&ResolverThread::func, &rt) {}
 
     ~ResolverImp() {
+        rt_.stop();
         if (t_.joinable())
             t_.join();
     }
 
 private:
+    ResolverThread &rt_;
     thread t_;
 };
 

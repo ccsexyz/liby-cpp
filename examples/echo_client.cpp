@@ -10,7 +10,9 @@ void print_usage() {
 }
 
 int main(int argc, char **argv) {
-    int msg_num, msg_len, concurrency, active_clients;
+//    Logger::setLevel(Logger::LogLevel::VERBOSE);
+    int msg_num, msg_len, concurrency;
+    atomic_int active_clients;
     if (argc == 7) {
         msg_num = ::atoi(argv[5]);
         msg_len = ::atoi(argv[6]);
@@ -30,7 +32,7 @@ int main(int argc, char **argv) {
     vector<char> buf(msg_len, 'A');
     vector<unsigned long> bytes(concurrency, 0);
 
-    EventLoopGroup group;
+    EventLoopGroup group(4, "EPOLL");
     auto start = Timestamp::now();
     for (int i = 0; i < concurrency; i++) {
         auto echo_client = group.creatTcpClient(argv[1], argv[2]);
@@ -53,12 +55,16 @@ int main(int argc, char **argv) {
                     if (*pBytes >= bytesPerClients) {
                         c.destroy();
                         group.robinLoop1(0)->runEventHandler(
-                            [&active_clients] { active_clients--; });
+                            [&active_clients] {
+                                active_clients--;
+                            });
                     }
                 });
-                conn->onRead([&group, &active_clients](Connection &c) {
+                conn->onErro([&group, &active_clients](Connection &c) {
                     group.robinLoop1(0)->runEventHandler(
-                        [&active_clients] { active_clients--; });
+                        [&active_clients] {
+                            active_clients--;
+                        });
                 });
 
                 conn->send(&buf[0], buf.size());

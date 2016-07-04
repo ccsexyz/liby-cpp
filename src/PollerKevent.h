@@ -1,6 +1,8 @@
 #ifndef LIBY_CPP_POLLERKQUEUE_H
 #define LIBY_CPP_POLLERKQUEUE_H
 
+#ifdef __APPLE__
+
 #include "Poller.h"
 #include <sys/event.h>
 #include <sys/time.h>
@@ -29,4 +31,5 @@ private:
 };
 }
 
+#endif
 #endif // LIBY_CPP_POLLERKQUEUE_H

@@ -18,3 +18,39 @@ void Poller::bind_to_thread() {
     }
     th_poller = this;
 }
+
+void Poller::nextLoop(const BasicHandler &handler) {
+    nextLoopHandlers_.push_back(handler);
+}
+
+void Poller::afterLoop(const BasicHandler &handler) {
+    afterLoopHandlers_.push_back(handler);
+}
+
+void Poller::nextTick(const BasicHandler &handler) {
+    nextTickHandlers_.push_back(handler);
+}
+
+void Poller::runNextLoopHandlers() {
+    if(nextLoopHandlers_.empty())
+        return;
+    for(auto &handler : nextLoopHandlers_)
+        handler();
+    nextLoopHandlers_.clear();
+}
+
+void Poller::runAfterLoopHandlers() {
+    if(afterLoopHandlers_.empty())
+        return;
+    for(auto &handler : afterLoopHandlers_)
+        handler();
+    afterLoopHandlers_.clear();
+}
+
+void Poller::runNextTickHandlers() {
+    if(nextTickHandlers_.empty())
+        return;
+    for(auto &handler : nextTickHandlers_)
+        handler();
+    nextTickHandlers_.clear();
+}

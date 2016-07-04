@@ -11,6 +11,8 @@ class UdpSocket;
 class EventLoopGroup final : clean_ {
 public:
     EventLoopGroup(int n = 0, const std::string &chooser = "EPOLL");
+    ~EventLoopGroup();
+
     void run(BoolFunctor bf = []() -> bool { return true; });
 
     EventLoop *robinLoop(int fd);

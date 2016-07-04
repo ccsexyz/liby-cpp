@@ -38,7 +38,6 @@ void EventLoop::bind_to_thread() {
 }
 
 EventLoop *EventLoop::curr_thread_loop() {
-    assert(th_loop);
     return th_loop;
 }
 
@@ -63,7 +62,7 @@ void EventLoop::run(BoolFunctor bf) {
         tqueue_->handleTimeoutEvents();
 #elif defined(__linux__)
 
-        poller_->loop_once(p);
+        poller_->loop_once();
 
 #endif
     }
@@ -112,4 +111,19 @@ EventLoop *EventLoop::robinLoop1(int fd) {
 
 EventLoop *EventLoop::robinLoop(int fd) {
     return rf_(fd);
+}
+
+void EventLoop::nextLoop(const BasicHandler &handler) {
+    assert(poller_);
+    poller_->nextLoop(handler);
+}
+
+void EventLoop::afterLoop(const BasicHandler &handler) {
+    assert(poller_);
+    poller_->afterLoop(handler);
+}
+
+void EventLoop::nextTick(const BasicHandler &handler) {
+    assert(poller_);
+    poller_->nextTick(handler);
 }

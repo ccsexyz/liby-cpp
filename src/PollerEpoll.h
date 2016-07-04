@@ -31,16 +31,6 @@ namespace Liby {
 class PollerEpoll : public Poller {
 public:
     PollerEpoll() = default;
-
-    virtual void addChanel(Channel *ch) override {
-    }
-    virtual void updateChanel(Channel *ch, bool readable,
-                              bool writable) override {
-    }
-    virtual void removeChanel(Channel *ch) override {
-    }
-    virtual void loop_once(Timestamp *ts) override {
-    }
 };
 }
 
