@@ -3,7 +3,7 @@
 using namespace std;
 using namespace Liby;
 
-int main(int argc, char **argv) {
+int main() {
     //    Logger::setLevel(Logger::LogLevel::VERBOSE);
     EventLoopGroup group;
     auto hello_server = group.creatUdpServer("0.0.0.0", "8888");

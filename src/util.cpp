@@ -66,7 +66,11 @@ __thread char savedSecString[128]; // 似乎clang++并不支持thread_local的�
 
 std::string Timestamp::toString() const {
     char usecString[48];
+#ifndef __linux__
+    sprintf(usecString, " %06d", tv_.tv_usec);
+#else
     sprintf(usecString, " %06ld", tv_.tv_usec);
+#endif
     if (tv_.tv_sec != savedSec) {
         struct tm result;
         ::localtime_r(&(tv_.tv_sec), &result);

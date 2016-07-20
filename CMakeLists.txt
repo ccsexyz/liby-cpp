@@ -52,7 +52,13 @@ set(SOURCE_FILES
         src/PollerSelect.cpp
         src/PollerSelect.h
         src/PollerKevent.cpp
-        src/PollerKevent.h)
+        src/PollerKevent.h
+        src/http/HttpServer.cpp
+        src/http/HttpServer.h
+        src/http/HttpClient.cpp
+        src/http/HttpClient.h
+        src/http/HttpDef.cpp
+        src/http/HttpDef.h)
 
 set(ECHO_FILES examples/echo.cpp ${SOURCE_FILES})
 set(ECHO_CLIENT_FILES examples/echo_client.cpp ${SOURCE_FILES})
@@ -64,6 +70,8 @@ set(CHAT_FILES examples/chat.cpp ${SOURCE_FILES})
 set(ALL_FILES examples/all.cpp ${SOURCE_FILES})
 set(UDP_HELLO_FILES examples/udp_hello.cpp ${SOURCE_FILES})
 set(UDP_CLIENT_FILES examples/udp_client.cpp ${SOURCE_FILES})
+set(HTTPD_FILES examples/httpd.cpp ${SOURCE_FILES})
+set(HTTPD_CLIENT_TEST_FILES examples/http_client_test.cpp ${SOURCE_FILES})
 
 
 add_library(_cpp SHARED ${SOURCE_FILES})
@@ -88,3 +96,7 @@ add_executable(udp_hello ${UDP_HELLO_FILES})
 target_link_libraries(udp_hello pthread)
 add_executable(udp_client ${UDP_CLIENT_FILES})
 target_link_libraries(udp_client pthread)
+add_executable(httpd ${HTTPD_FILES})
+target_link_libraries(httpd pthread)
+add_executable(httpd_client_test ${HTTPD_CLIENT_TEST_FILES})
+target_link_libraries(httpd_client_test pthread)

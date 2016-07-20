@@ -50,6 +50,10 @@ void Buffer::copy(Buffer &that) {
 void Buffer::deepCopy(const Buffer &that) {
     if (this == &that)
         return;
+    if(that.empty()) {
+        retrieve();
+        return;
+    }
     resetBuffer();
     capacity_ = that.size() + defaultPrependSize;
     buffer_ = new char[capacity_];
@@ -97,10 +101,18 @@ void Buffer::append(off_t n) {
     rightIndex_ += n;
 }
 
-void Buffer::append(const Buffer &that) { append(that.data(), that.size()); }
+void Buffer::append(const Buffer &that) {
+    if(!that.empty())
+        append(that.data(), that.size());
+}
 
 void Buffer::append(const char *buf, off_t len) {
     assert(buf && len > 0);
+    if(empty()) {
+        Buffer buffer(buf, len);
+        swap(buffer);
+        return;
+    }
     if (capacity_ - rightIndex_ >= len) {
         ;
     } else if (len + size() <= capacity_) {

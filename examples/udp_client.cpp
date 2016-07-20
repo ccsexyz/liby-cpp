@@ -40,7 +40,5 @@ int main(int argc, char **argv) {
             });
         });
         group.run();
-    } catch (const char *err) {
-        cerr << err << endl;
-    }
+    } catch (const char *err) { cerr << err << endl; }
 }

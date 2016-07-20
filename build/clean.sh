@@ -1,3 +1,5 @@
 #!/bin/bash
-rm *.run 
-rm *.o
+
+find . -name "*.o" && rm -rf *.o
+find . -name "*.run" && rm -rf *.run
+find . -name "*.dSYM" && rm -rf *.dSYM

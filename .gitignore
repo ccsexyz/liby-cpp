@@ -1,3 +1,4 @@
+*.dSYM
 *.run
 
 # Compiled Object files

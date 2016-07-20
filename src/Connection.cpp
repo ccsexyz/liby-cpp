@@ -13,8 +13,7 @@ Connection::Connection(EventLoop *loop, const SockPtr &socket)
 }
 
 Connection::Connection(const SockPtr &socket)
-    : Connection(EventLoop::curr_thread_loop(), socket) {
-}
+    : Connection(EventLoop::curr_thread_loop(), socket) {}
 
 void Connection::init() {
     self_ = shared_from_this();
@@ -42,11 +41,7 @@ void Connection::destroy() {
     self_.reset();
 }
 
-void Connection::setErro() {
-}
-
-void Connection::sendFile(const fdPtr &fp, off_t off, off_t len) {
-}
+void Connection::setErro() {}
 
 void Connection::runEventHandler(const BasicHandler &handler) {
     assert(loop_ && poller_);
@@ -104,12 +99,29 @@ void Connection::send(const std::string &str, const BasicHandler &handler) {
     }
 }
 
-int Connection::sync_read(char *buf, size_t len) {
-    return 0;
+Buffer Connection::sync_read() {
+    Buffer ret(4096);
+    socket_->setNoblock(false);
+    DeferCaller defer([this] { socket_->setNoblock(); });
+    int nbytes = socket_->read(static_cast<void *>(ret.data()), ret.capacity());
+    if (nbytes > 0) {
+        ret.append(nbytes);
+    }
+    return ret;
 }
 
-int Connection::sync_send(Buffer &buffer) {
-    return 0;
+void Connection::sync_send(Buffer &buffer) {
+    socket_->setNoblock(false);
+    DeferCaller defer([this] { socket_->setNoblock(); });
+    while (!buffer.empty()) {
+        int nbytes =
+            socket_->write(static_cast<void *>(buffer.data()), buffer.size());
+        if (nbytes > 0) {
+            buffer.retrieve(nbytes);
+        } else {
+            break;
+        }
+    }
 }
 
 __thread char extraBuffer[16384];
@@ -245,6 +257,23 @@ Connection &Connection::enableWrit(bool flag) {
     chan_->enableWrit(flag);
     chan_->updateChannel();
     return *this;
+}
+
+void Connection::sendFile(const fdPtr &fp, off_t off, off_t len,
+                          const BasicHandler &handler) {
+    io_task task;
+    task.fp_ = fp;
+    task.offset_ = off;
+    task.len_ = len;
+    if (handler) {
+        task.handler_ = std::make_unique<BasicHandler>(handler);
+    }
+    writTasks_.emplace_back(std::move(task));
+    enableWrit();
+}
+
+void Connection::destroyLater() {
+    loop_->nextTick([this] { destroy(); });
 }
 
 io_task::io_task(const io_task &that) {

@@ -22,7 +22,8 @@ SockPtr Socket::accept() {
         } else if (errno == EINTR) {
             return accept();
         } else {
-            int i = errno;
+            auto i = errno;
+            ClearUnuseVariableWarning(i);
             throw ::strerror(errno);
         }
     } else {
@@ -32,21 +33,17 @@ SockPtr Socket::accept() {
     }
 }
 
-Socket::Socket(bool isUdp_) : isUdp_(isUdp_) {
-    createSocket();
-}
+Socket::Socket(bool isUdp_) : isUdp_(isUdp_) { createSocket(); }
 
 Socket::Socket(const fdPtr &fp, bool isUdp_)
-    : isUdp_(isUdp_), fd_(fp->fd()), fp_(fp) {
-}
+    : isUdp_(isUdp_), fd_(fp->fd()), fp_(fp) {}
 
 Socket::Socket(const Endpoint &ep, bool isUdp_) : isUdp_(isUdp_), ep_(ep) {
     createSocket();
 }
 
 Socket::Socket(const fdPtr &fp, const Endpoint &ep, bool isUdp)
-    : isUdp_(isUdp), fd_(fp->fd()), fp_(fp), ep_(ep) {
-}
+    : isUdp_(isUdp), fd_(fp->fd()), fp_(fp), ep_(ep) {}
 
 void Socket::connect() {
     if (!fp_) {
@@ -97,9 +94,7 @@ void Socket::listen() {
     }
 }
 
-void Socket::setNoblock(bool flag) {
-    fp_->set_noblock();
-}
+void Socket::setNoblock(bool flag) { fp_->set_noblock(flag); }
 
 void Socket::setNonagle(bool flag) {
     assert(!isUdp_);

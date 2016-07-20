@@ -15,15 +15,14 @@ PollerEpoll::PollerEpoll() {
     events_.resize(defaultEpollSize);
 }
 
-void PollerEpoll::loop_once(Timestamp *ts) {
+// Epoll do not need Timestamp
+void PollerEpoll::loop_once(Timestamp *) {
     runNextLoopHandlers();
 
     int nfds = ::epoll_wait(pollerfd_, &events_[0], events_.size(), -1);
     verbose("nfds = %d events_.size() = %u", nfds, events_.size());
     for (int i = 0; i < nfds; i++) {
-        DeferCaller deferCaller([this]{
-            runNextTickHandlers();
-        });
+        DeferCaller deferCaller([this] { runNextTickHandlers(); });
 
         int fd = events_[i].data.fd;
         Channel *ch = getChannel(fd);
@@ -77,6 +76,7 @@ void PollerEpoll::addChanel(Channel *ch) {
 
     if (ret < 0) {
         auto it = errno;
+        ClearUnuseVariableWarning(it);
         throw ::strerror(errno);
     } else {
         setChannel(fd, ch);
@@ -121,6 +121,7 @@ void PollerEpoll::removeChanel(Channel *ch) {
 
     if (ret < 0) {
         int err = errno;
+        ClearUnuseVariableWarning(err);
         throw ::strerror(errno);
     }
 }

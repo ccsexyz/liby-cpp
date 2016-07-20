@@ -11,7 +11,7 @@ class TcpRelayer : clean_ {
 public:
     TcpRelayer(EventLoopGroup &group, const std::string &host,
                const std::string &service, const std::string &listenport)
-        : group_(group), host_(host), service_(service) {
+        : host_(host), service_(service), group_(group) {
         tcpServer_ = group.creatTcpServer("localhost", listenport);
     }
     void start() {

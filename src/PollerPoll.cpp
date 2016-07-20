@@ -3,9 +3,7 @@
 
 using namespace Liby;
 
-PollerPoll::PollerPoll() {
-    pollfds_.resize(defaultPollSize);
-}
+PollerPoll::PollerPoll() { pollfds_.resize(defaultPollSize); }
 
 void PollerPoll::addChanel(Channel *ch) {
     assert(ch && ch->get_fd() >= 0);
@@ -37,13 +35,13 @@ void PollerPoll::updateChanel(Channel *ch, bool readable, bool writable) {
     int fd = ch->get_fd();
     struct pollfd *p = &pollfds_[fd];
 
-    if (ch->readable()) {
+    if (readable) {
         p->events |= POLLIN;
     } else {
         p->events &= ~POLLIN;
     }
 
-    if (ch->writable()) {
+    if (writable) {
         p->events |= POLLOUT;
     } else {
         p->events &= ~POLLOUT;
@@ -52,7 +50,7 @@ void PollerPoll::updateChanel(Channel *ch, bool readable, bool writable) {
 
 void PollerPoll::removeChanel(Channel *ch) {
     assert(ch && ch->get_fd() >= 0);
-
+    info("remove Channel %p", ch);
     int fd = ch->get_fd();
     setChannel(fd, nullptr);
     pollfds_[fd].fd = -1;
@@ -73,16 +71,16 @@ void PollerPoll::loop_once(Timestamp *ts) {
 
     int nready = ::poll(&pollfds_[0], pollfds_.size(), interMs);
 
-    for (int i = 0; i < pollfds_.size() && nready > 0; i++) {
-        DeferCaller deferCaller([this]{
-            runNextTickHandlers();
-        });
+    for (decltype(pollfds_.size()) i = 0; i < pollfds_.size() && nready > 0;
+         i++) {
+        DeferCaller deferCaller([this] { runNextTickHandlers(); });
 
         bool flag = false;
         int fd = pollfds_[i].fd;
         int revent = pollfds_[i].revents;
+        Channel *ch;
 
-        if (fd < 0)
+        if (fd < 0 || (ch = getChannel(fd)) == nullptr)
             continue;
 
         if (revent & POLLERR
@@ -91,20 +89,18 @@ void PollerPoll::loop_once(Timestamp *ts) {
 #endif
             ) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleErroEvent();
             continue;
         }
 
+        // readEventHandler可能会将ch析构,所以简单的改了一下逻辑
         if (revent & POLLIN) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleReadEvent();
         }
 
-        if (revent & POLLOUT) {
+        if (revent & POLLOUT && (ch = getChannel(fd)) != nullptr) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleWritEvent();
         }
 

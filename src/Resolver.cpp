@@ -65,7 +65,6 @@ void ResolverThread::stop() {
     resolve("", "", nullptr, nullptr);
 }
 
-
 class ResolverImp final : clean_ {
 public:
     ResolverImp(ResolverThread &rt) : rt_(rt), t_(&ResolverThread::func, &rt) {}

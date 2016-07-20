@@ -54,7 +54,7 @@ void EventLoopGroup::worker_thread(int index) {
     // 这里不用担心调用wakeup时EventLoopGroup被析构
     //　因为主线程的析构函数会等待其他线程终结
 
-    for(auto loop : ploops_) {
+    for (auto loop : ploops_) {
         loop->wakeup();
     }
 }
@@ -67,9 +67,7 @@ EventLoop *EventLoopGroup::robinLoop1(int fd) {
     }
 }
 
-EventLoop *EventLoopGroup::robinLoop(int fd) {
-    return ploops_[fd % (n_ + 1)];
-}
+EventLoop *EventLoopGroup::robinLoop(int fd) { return ploops_[fd % (n_ + 1)]; }
 
 std::shared_ptr<TcpServer>
 EventLoopGroup::creatTcpServer(const std::string &host,
@@ -81,7 +79,12 @@ EventLoopGroup::creatTcpServer(const std::string &host,
     }
 
     SockPtr sockPtr = std::make_shared<Socket>(eps.front());
-    sockPtr->listen();
+
+    try {
+        sockPtr->listen();
+    } catch(const char *err) {
+        fatal(err);
+    }
 
     std::shared_ptr<TcpServer> tcpServer =
         std::make_shared<TcpServer>(ploops_[0]);
@@ -107,10 +110,19 @@ EventLoopGroup::creatTcpClient(const std::string &host,
             SockPtr sockPtr = std::make_shared<Socket>(eps.front());
             sockPtr->connect();
 
-            tcpClient->setEventLoop(robinLoop1(sockPtr->fd()));
+            EventLoop *loop = robinLoop1(sockPtr->fd());
+
+            tcpClient->setEventLoop(loop);
             tcpClient->setSocket(sockPtr);
 
-            tcpClient->start();
+            // BUG tcpClient与当前线程不在一个线程上时,可能会引起内存错误
+            //            tcpClient->start();
+            // FIX
+            if (loop == EventLoop::curr_thread_loop()) {
+                tcpClient->start();
+            } else {
+                loop->runEventHandler([tcpClient] { tcpClient->start(); });
+            }
         });
     return tcpClient;
 }
@@ -163,8 +175,8 @@ std::shared_ptr<UdpSocket> EventLoopGroup::creatUdpClient() {
 }
 
 EventLoopGroup::~EventLoopGroup() {
-    for(auto &th : threads_) {
-        if(th.joinable()) {
+    for (auto &th : threads_) {
+        if (th.joinable()) {
             th.join();
         }
     }

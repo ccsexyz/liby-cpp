@@ -32,25 +32,25 @@ void Poller::nextTick(const BasicHandler &handler) {
 }
 
 void Poller::runNextLoopHandlers() {
-    if(nextLoopHandlers_.empty())
+    if (nextLoopHandlers_.empty())
         return;
-    for(auto &handler : nextLoopHandlers_)
+    for (auto &handler : nextLoopHandlers_)
         handler();
     nextLoopHandlers_.clear();
 }
 
 void Poller::runAfterLoopHandlers() {
-    if(afterLoopHandlers_.empty())
+    if (afterLoopHandlers_.empty())
         return;
-    for(auto &handler : afterLoopHandlers_)
+    for (auto &handler : afterLoopHandlers_)
         handler();
     afterLoopHandlers_.clear();
 }
 
 void Poller::runNextTickHandlers() {
-    if(nextTickHandlers_.empty())
+    if (nextTickHandlers_.empty())
         return;
-    for(auto &handler : nextTickHandlers_)
+    for (auto &handler : nextTickHandlers_)
         handler();
     nextTickHandlers_.clear();
 }

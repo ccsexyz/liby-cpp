@@ -10,20 +10,15 @@ class Poller : clean_ {
 public:
     Poller();
 
-    virtual ~Poller() {
-    }
+    virtual ~Poller() {}
 
     void bind_to_thread();
 
     static Poller *curr_thread_poller();
 
-    Channel *getChannel(int fd) {
-        return channels_[fd];
-    }
+    Channel *getChannel(int fd) { return channels_[fd]; }
 
-    void setChannel(int fd, Channel *ch) {
-        channels_[fd] = ch;
-    }
+    void setChannel(int fd, Channel *ch) { channels_[fd] = ch; }
 
     // 在事件处理结束时调用
     void nextTick(const BasicHandler &handler);
@@ -33,13 +28,13 @@ public:
     void afterLoop(const BasicHandler &handler);
 
 public:
-    virtual void addChanel(Channel *ch) {}
+    virtual void addChanel(Channel *) {}
 
-    virtual void updateChanel(Channel *ch, bool readable, bool writable) {}
+    virtual void updateChanel(Channel *, bool, bool) {}
 
-    virtual void removeChanel(Channel *ch) {}
+    virtual void removeChanel(Channel *) {}
 
-    virtual void loop_once(Timestamp *ts = nullptr) {}
+    virtual void loop_once(Timestamp * = nullptr) {}
 
 protected:
     void runNextTickHandlers();

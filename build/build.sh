@@ -6,6 +6,7 @@ build() {
 }
 
 g++ -g $ccflags -c ../src/*.cpp -std=c++14
+g++ -g $ccflags -c ../src/http/*.cpp -std=c++14
 
 build all
 build daytime
@@ -17,3 +18,4 @@ build chat
 build discard
 build tcp_relayer
 build udp_hello
+build httpd

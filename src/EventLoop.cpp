@@ -37,9 +37,7 @@ void EventLoop::bind_to_thread() {
     poller_->bind_to_thread();
 }
 
-EventLoop *EventLoop::curr_thread_loop() {
-    return th_loop;
-}
+EventLoop *EventLoop::curr_thread_loop() { return th_loop; }
 
 void EventLoop::run(BoolFunctor bf) {
     equeue_->start();
@@ -68,9 +66,7 @@ void EventLoop::run(BoolFunctor bf) {
     }
 }
 
-void EventLoop::wakeup() {
-    equeue_->wakeup();
-}
+void EventLoop::wakeup() { equeue_->wakeup(); }
 
 void EventLoop::runEventHandler(const BasicHandler &handler) {
     equeue_->pushHandler(handler);
@@ -105,13 +101,9 @@ TimerHolder EventLoop::runEvery(const Timestamp &timestamp,
     return holder;
 }
 
-EventLoop *EventLoop::robinLoop1(int fd) {
-    return rf1_(fd);
-}
+EventLoop *EventLoop::robinLoop1(int fd) { return rf1_(fd); }
 
-EventLoop *EventLoop::robinLoop(int fd) {
-    return rf_(fd);
-}
+EventLoop *EventLoop::robinLoop(int fd) { return rf_(fd); }
 
 void EventLoop::nextLoop(const BasicHandler &handler) {
     assert(poller_);

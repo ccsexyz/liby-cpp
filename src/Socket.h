@@ -21,9 +21,7 @@ public:
 
     SockPtr accept();
 
-    int fd() const {
-        return fd_;
-    }
+    int fd() const { return fd_; }
 
     Socket &setFp(const fdPtr &fp);
 
@@ -32,9 +30,7 @@ public:
         return *this;
     }
 
-    int read(void *buf, size_t nbytes) {
-        return ::read(fd_, buf, nbytes);
-    }
+    int read(void *buf, size_t nbytes) { return ::read(fd_, buf, nbytes); }
     int readv(struct iovec *iov, int iovcnt) {
         return ::readv(fd_, iov, iovcnt);
     }
@@ -42,9 +38,7 @@ public:
                  socklen_t *address_len) {
         return ::recvfrom(fd_, buf, nbytes, flags, address, address_len);
     }
-    int write(void *buf, size_t nbytes) {
-        return ::write(fd_, buf, nbytes);
-    }
+    int write(void *buf, size_t nbytes) { return ::write(fd_, buf, nbytes); }
     int writev(struct iovec *iov, int iovcnt) {
         return ::writev(fd_, iov, iovcnt);
     }

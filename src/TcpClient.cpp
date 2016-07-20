@@ -18,10 +18,10 @@ void TcpClient::start() {
         .enableWrit()
         .onWrit([this] {
             auto x = shared_from_this();
-//            if (!socket_) {
-//                auto p = chan_.get();
-//                socket_.reset();
-//            }
+            //            if (!socket_) {
+            //                auto p = chan_.get();
+            //                socket_.reset();
+            //            }
             ConnPtr connPtr = std::make_shared<Connection>(loop_, socket_);
             connPtr->setChannel(chan_);
             if (context_) {
@@ -29,7 +29,7 @@ void TcpClient::start() {
             }
             Connector connector = connector_;
 
-            loop_->nextTick([&, connPtr, connector]{
+            loop_->nextTick([&, connPtr, connector] {
                 chan_->onWrit(nullptr);
                 chan_->onErro(nullptr);
                 destroy();

@@ -38,13 +38,13 @@ void PollerKevent::updateChanel(Channel *ch, bool readable, bool writable) {
 
     int fd = ch->get_fd();
     struct kevent changes;
-    if (ch->readable()) {
+    if (readable) {
         EV_SET(&changes, fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, nullptr);
     } else {
         EV_SET(&changes, fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
     }
     changes_.push_back(changes);
-    if (ch->writable()) {
+    if (writable) {
         EV_SET(&changes, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, nullptr);
     } else {
         EV_SET(&changes, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
@@ -85,9 +85,7 @@ void PollerKevent::loop_once(Timestamp *ts) {
     int nready = ::kevent(kq_, nullptr, 0, &events_[0], events_.size(), pto);
 
     for (int i = 0; i < nready; i++) {
-        DeferCaller deferCaller([this]{
-            runNextTickHandlers();
-        });
+        DeferCaller deferCaller([this] { runNextTickHandlers(); });
 
         struct kevent &event = events_[i];
         int fd = static_cast<int>(event.ident);
@@ -130,7 +128,7 @@ void PollerKevent::updateKevents() {
 
     for (; index < n; index++) {
         start = index;
-        struct kevent *p = &changes_[index];
+        // struct kevent *p = &changes_[index];
 
         for (; index < n && getChannel(changes_[index].ident) != nullptr;
              index++)

@@ -5,7 +5,7 @@
 #include <list>
 
 namespace Liby {
-class Endpoint;
+struct Endpoint;
 using ResolverHandler = std::function<void(std::list<Endpoint> eps)>;
 class Resolver final : clean_ {
 public:

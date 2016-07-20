@@ -6,34 +6,25 @@
 namespace Liby {
 class FileDescriptor {
 public:
-    FileDescriptor() : fd_(-1) {
-    }
+    FileDescriptor() : fd_(-1) {}
 
-    explicit FileDescriptor(int fd) : fd_(fd) {
-        check_fd(fd);
-    }
+    explicit FileDescriptor(int fd) : fd_(fd) { check_fd(fd); }
 
-    ~FileDescriptor() {
-        ::close(fd_);
-    }
+    ~FileDescriptor() { ::close(fd_); }
 
-    int fd() const {
-        return fd_;
-    }
+    int fd() const { return fd_; }
 
-    void set_fd(int fd) {
-        check_fd(fd);
-    }
+    void set_fd(int fd) { check_fd(fd); }
 
     void set_noblock(bool flag = true);
 
-    void shutdown_read() {
-        ::shutdown(fd_, SHUT_RD);
-    }
+    void shutdown_read() { ::shutdown(fd_, SHUT_RD); }
 
-    void shutdown_write() {
-        ::shutdown(fd_, SHUT_WR);
-    }
+    void shutdown_write() { ::shutdown(fd_, SHUT_WR); }
+
+    static fdPtr openFile(const std::string &filepath);
+
+    off_t getFileSize();
 
 private:
     void check_fd(int fd) {

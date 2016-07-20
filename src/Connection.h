@@ -57,10 +57,12 @@ public:
     void init1();
 
     void destroy();
+    void destroyLater();
 
     void setErro();
 
-    void sendFile(const fdPtr &fp, off_t off, off_t len);
+    void sendFile(const fdPtr &fp, off_t off, off_t len,
+                  const BasicHandler &handler = nullptr);
 
     void runEventHandler(const BasicHandler &handler);
 
@@ -83,8 +85,8 @@ public:
 
     Buffer &read() { return readBuf_; }
 
-    int sync_read(char *buf, size_t len);
-    int sync_send(Buffer &buffer);
+    Buffer sync_read();
+    void sync_send(Buffer &buffer);
 
     std::shared_ptr<BaseContext> &context() { return context_; }
 

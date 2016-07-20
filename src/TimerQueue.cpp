@@ -44,6 +44,8 @@ void TimerQueue::updateTimerfd(const Timestamp &timeout) {
     new_timer.it_interval = {0, 0};
     int ret = ::timerfd_settime(timerfd_, TFD_TIMER_ABSTIME, &new_timer, NULL);
     errorif(ret < 0, "timer_settime: %s", ::strerror(errno));
+#else
+    ClearUnuseVariableWarning(timeout);
 #endif
 }
 

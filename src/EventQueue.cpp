@@ -75,7 +75,8 @@ void EventQueue::wakeup() {
 #elif defined(__APPLE__)
     targetfd = event2fd_;
 #endif
-    ClearUnuseVariableWarning(::write(targetfd, &this_is_a_number, sizeof(this_is_a_number)));
+    ClearUnuseVariableWarning(
+        ::write(targetfd, &this_is_a_number, sizeof(this_is_a_number)));
 }
 
 void EventQueue::pushHandler(const BasicHandler &handler) {

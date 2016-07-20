@@ -18,8 +18,7 @@ struct udp_io_task final {
     }
     udp_io_task(udp_io_task &&that)
         : dest_(that.dest_), buffer_(std::move(that.buffer_)),
-          handler_(std::move(that.handler_)) {
-    }
+          handler_(std::move(that.handler_)) {}
 
     struct sockaddr_in *dest_;
     std::shared_ptr<Buffer> buffer_;
@@ -68,9 +67,7 @@ public:
     UdpSocket &enableWrit(bool flag = true);
 
     void destroy();
-    void destroyConn(const Endpoint &ep) {
-        conns_.erase(ep);
-    }
+    void destroyConn(const Endpoint &ep) { conns_.erase(ep); }
 
     void handleConnectEvent(const Endpoint &ep);
 
@@ -78,6 +75,12 @@ private:
     void handleReadEvent();
     void handleWritEvent();
     void handleErroEvent();
+
+private:
+    void fix_clang_waring() {
+        ClearUnuseVariableWarning(
+            loop_); //别问我为啥要写这个函数，我也不知道clang为啥要给我报个warning
+    }
 
 private:
     bool destroy_ = false;

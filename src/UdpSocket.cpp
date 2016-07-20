@@ -122,8 +122,7 @@ UdpSocket::UdpSocket(EventLoop *loop, const SockPtr &socket)
 }
 
 UdpSocket::UdpSocket(const SockPtr &socket)
-    : UdpSocket(EventLoop::curr_thread_loop(), socket) {
-}
+    : UdpSocket(EventLoop::curr_thread_loop(), socket) {}
 
 void UdpSocket::start() {
     self_ = shared_from_this();

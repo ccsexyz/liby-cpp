@@ -12,8 +12,7 @@ struct addrinfo;
 
 namespace Liby {
 struct Endpoint {
-    Endpoint(uint32_t addr, uint16_t port) : port_(port), addr_(addr) {
-    }
+    Endpoint(uint32_t addr, uint16_t port) : port_(port), addr_(addr) {}
     Endpoint(const std::string &addr, const std::string &port);
     Endpoint(const std::string &addr, uint16_t port);
     Endpoint(struct sockaddr_in *sockaddr);

@@ -8,22 +8,18 @@
 
 namespace Liby {
 
-class Timer : public std::enable_shared_from_this<Timer> {
+class Timer {
 public:
-    Timer() : id_(0), timeout_(), handler_() {
-    }
+    Timer() : id_(0), timeout_(), handler_() {}
 
     Timer(const Timestamp &timeout, const BasicHandler &handler)
-        : id_(timerIds_++), timeout_(timeout), handler_(handler) {
-    }
+        : id_(timerIds_++), timeout_(timeout), handler_(handler) {}
 
     Timer(TimerId id, const Timestamp &timeout, const BasicHandler &handler)
-        : id_(id), timeout_(timeout), handler_(handler) {
-    }
+        : id_(id), timeout_(timeout), handler_(handler) {}
 
     Timer(const Timer &that)
-        : id_(that.id_), timeout_(that.timeout_), handler_(that.handler_) {
-    }
+        : id_(that.id_), timeout_(that.timeout_), handler_(that.handler_) {}
 
     Timer &operator=(const Timer &that) {
         id_ = that.id_;
@@ -32,28 +28,18 @@ public:
         return *this;
     }
 
-    static TimerId getOneValidId() {
-        return timerIds_++;
-    }
+    static TimerId getOneValidId() { return timerIds_++; }
 
     //        ~Timer() {
     //            info("Timer deconstruct!");
     //        }
-    uint64_t id() const {
-        return id_;
-    }
+    uint64_t id() const { return id_; }
 
-    const Timestamp &timeout() const {
-        return timeout_;
-    }
+    const Timestamp &timeout() const { return timeout_; }
 
-    void runHandler() const {
-        handler_();
-    }
+    void runHandler() const { handler_(); }
 
-    void setTimeout(const Timestamp &timestamp) {
-        timeout_ = timestamp;
-    }
+    void setTimeout(const Timestamp &timestamp) { timeout_ = timestamp; }
 
 private:
     static std::atomic<uint64_t> timerIds_;
@@ -69,28 +55,22 @@ inline bool operator<(const Timer &lhs, const Timer &rhs) {
 class TimerHolder {
 public:
     TimerHolder() = default;
-    TimerHolder(const TimerHolder &that) {
-        timerPtr_ = that.timerPtr_;
-    }
+    TimerHolder(const TimerHolder &that) { timerPtr_ = that.timerPtr_; }
     TimerHolder &operator=(const TimerHolder &that) {
         timerPtr_ = that.timerPtr_;
         return *this;
     }
     TimerHolder(const Timer &timer)
-        : timerPtr_(std::make_shared<Timer>(timer)) {
-    }
+        : timerPtr_(std::make_shared<Timer>(timer)) {}
     TimerHolder(const Timestamp &timeout, const BasicHandler &handler)
-        : timerPtr_(std::make_shared<Timer>(timeout, handler)) {
-    }
+        : timerPtr_(std::make_shared<Timer>(timeout, handler)) {}
 
     Timer &getTimer() const {
         assert(timerPtr_);
         return *timerPtr_;
     }
 
-    std::shared_ptr<Timer> getTimerPtr() const {
-        return timerPtr_;
-    }
+    std::shared_ptr<Timer> getTimerPtr() const { return timerPtr_; }
 
 private:
     std::shared_ptr<Timer> timerPtr_;
@@ -101,8 +81,7 @@ public:
     WeakTimerHolder() = default;
     WeakTimerHolder(const TimerHolder &holder)
         : timer_(holder.getTimer().id(), holder.getTimer().timeout(), nullptr),
-          weakTimerPtr_(holder.getTimerPtr()) {
-    }
+          weakTimerPtr_(holder.getTimerPtr()) {}
     WeakTimerHolder(const std::shared_ptr<Timer> &timer)
         : timer_(timer->id(), timer->timeout(), nullptr), weakTimerPtr_(timer) {
     }
@@ -113,17 +92,11 @@ public:
                lhs.timer_.id() < rhs.timer_.id();
     }
 
-    Timer &getTimer() {
-        return timer_;
-    }
+    Timer &getTimer() { return timer_; }
 
-    const Timer &getTimer() const {
-        return timer_;
-    }
+    const Timer &getTimer() const { return timer_; }
 
-    std::weak_ptr<Timer> getWeakTimerPtr() const {
-        return weakTimerPtr_;
-    }
+    std::weak_ptr<Timer> getWeakTimerPtr() const { return weakTimerPtr_; }
 
 private:
     Timer timer_;
@@ -138,9 +111,7 @@ public:
 
     void start();
 
-    Poller *getPoller() const {
-        return poller_;
-    }
+    Poller *getPoller() const { return poller_; }
 
     void destroy();
 

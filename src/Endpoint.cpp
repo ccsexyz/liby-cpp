@@ -35,5 +35,4 @@ Endpoint::Endpoint(const std::string &addr, uint16_t port) {
 }
 
 Endpoint::Endpoint(const std::string &addr, const std::string &port)
-    : Endpoint(addr, static_cast<uint16_t>(std::stoi(port))) {
-}
+    : Endpoint(addr, static_cast<uint16_t>(std::stoi(port))) {}

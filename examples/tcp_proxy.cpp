@@ -20,7 +20,7 @@ public:
             [this](Connection &conn) { handleConnectRequest(conn); });
         proxyServer_->onErro([this](Connection &conn) { onErro(conn); });
     }
-    void onAccept(Connection &conn) { ; }
+    void onAccept(Connection &) { ; }
     void handleConnectRequest(Connection &conn) {
         Buffer &readBuf = conn.read();
         if (readBuf.size() < 9) {

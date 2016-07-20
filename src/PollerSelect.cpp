@@ -3,8 +3,7 @@
 
 using namespace Liby;
 
-PollerSelect::PollerSelect() {
-}
+PollerSelect::PollerSelect() {}
 
 void PollerSelect::addChanel(Channel *ch) {
     assert(ch && ch->get_fd() >= 0);
@@ -32,13 +31,13 @@ void PollerSelect::updateChanel(Channel *ch, bool readable, bool writable) {
 
     int fd = ch->get_fd();
 
-    if (ch->readable()) {
+    if (readable) {
         FD_SET(fd, &rset_);
     } else {
         FD_CLR(fd, &rset_);
     }
 
-    if (ch->writable()) {
+    if (writable) {
         FD_SET(fd, &wset_);
     } else {
         FD_CLR(fd, &wset_);
@@ -91,26 +90,29 @@ void PollerSelect::loop_once(Timestamp *ts) {
     errorif(nready == -1, "select: %s", ::strerror(errno));
 
     for (int fd = 0; fd < maxfd_ && nready > 0; fd++) {
-        DeferCaller deferCaller([this]{
-            runNextTickHandlers();
-        });
+        DeferCaller deferCaller([this] { runNextTickHandlers(); });
+
+        Channel *ch = getChannel(fd);
+        if (ch == nullptr)
+            continue;
 
         bool flag = false;
         if (FD_ISSET(fd, &eset)) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleErroEvent();
             continue;
         }
         if (FD_ISSET(fd, &rset)) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleReadEvent();
         }
-        if (FD_ISSET(fd, &wset)) {
+        if (FD_ISSET(fd, &wset) && (ch = getChannel(fd)) != nullptr) {
             flag = true;
-            Channel *ch = getChannel(fd);
             ch->handleWritEvent();
+        }
+
+        if (flag == true) {
+            nready--;
         }
     }
 
